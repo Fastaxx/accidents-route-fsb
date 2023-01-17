@@ -9,7 +9,7 @@ pietons_link="data/fontenay-pietons.xlsx"
 cycliste_data=pd.read_excel(cycliste_link)
 pietons_data=pd.read_excel(pietons_link)
 
-add_selectbox = st.sidebar.selectbox("Choisir",("Infos","Piétons","Cycliste"))
+add_selectbox = st.sidebar.selectbox("Choisir la rubrique",("Infos","Piétons","Cycliste"))
 
 if add_selectbox=="Infos":
     st.title('Accident de la route - Fontenay-sous-bois')
@@ -20,6 +20,8 @@ if add_selectbox=="Infos":
 
 if add_selectbox=="Cycliste":
     st.title("Accidents cyclistes")
+    #Carte
+    st.header('Carte')
     latlong = cycliste_data[["Latitude","Longitude"]]
     latlong=latlong.dropna()
     latlong.rename(columns={"Latitude":"latitude"},inplace=True)
@@ -28,6 +30,27 @@ if add_selectbox=="Cycliste":
     latlong["longitude"]=pd.to_numeric(latlong["longitude"])
     st.map(latlong)
 
+    st.header('Statistiques')
+    #Accidents par sexe
+    st.caption("Nombres d'accidents hommes/femmes")
+    cat_personne = cycliste_data.groupby(["Sexe"])["Catégorie de personne"].count()
+    st.bar_chart(cat_personne)
+
+    #Accidents par gravité
+    st.caption("Nombres d'accidents en fonction de la gravité")
+    cat = cycliste_data.groupby(["Gravité"])["Catégorie de personne"].count()
+    st.bar_chart(cat)
+
+
+    #Accidents par année
+    st.caption("Nombres d'accidents par année")
+    cycliste_data["year"]=pd.DatetimeIndex(cycliste_data['Date']).year
+    year_date = cycliste_data.groupby(["year"])["Catégorie de personne"].count()
+    st.line_chart(year_date)
+    with st.expander("See explanation"):
+     st.write("Attention les données ne prennent pas en compte l'année 2022")
+
+    st.header('Tableau')
     agree = st.checkbox("Voir le tableau")
     if agree:
         st.write(cycliste_data)
